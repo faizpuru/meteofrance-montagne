@@ -8,10 +8,48 @@ from .exceptions import (
     MeteoFranceMontagneOffSeason,
 )
 from .massifs import in_massif, organize_by_department
+from .models import (
+    ORIENTATIONS,
+    Bulletin,
+    Echeance,
+    Enneigement,
+    EnneigementJour,
+    EstimationJ2,
+    Massif,
+    Meteo,
+    NeigeFraiche,
+    NeigeFraicheJour,
+    NiveauEnneigement,
+    Observation,
+    Pentes,
+    Risque,
+    RisqueJour,
+    Stabilite,
+    Vent,
+    ZoneRisque,
+)
 from .nivo import MeteoFranceNivoApi, parse_nivo_observations
 from .stations import station_name
 
 __all__ = [
+    "ORIENTATIONS",
+    "Bulletin",
+    "Echeance",
+    "Enneigement",
+    "EnneigementJour",
+    "EstimationJ2",
+    "Massif",
+    "Meteo",
+    "NeigeFraiche",
+    "NeigeFraicheJour",
+    "NiveauEnneigement",
+    "Observation",
+    "Pentes",
+    "Risque",
+    "RisqueJour",
+    "Stabilite",
+    "Vent",
+    "ZoneRisque",
     "MeteoFranceMontagneApi",
     "MeteoFranceMontagneApiError",
     "MeteoFranceMontagneAuthError",

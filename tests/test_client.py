@@ -64,8 +64,8 @@ async def test_bulletin(mock_http, api):
     mock_http.get(BULLETIN_URL, body=load_resource("sample_bulletin.xml"))
 
     bulletin = await api.bulletin(72)
-    assert bulletin["massif"] == "Orlu St-Barthelemy"
-    assert bulletin["risque"]["risque_max"] == "3"
+    assert bulletin.massif == "Orlu St-Barthelemy"
+    assert bulletin.risque.risque_max == "3"
 
 
 async def test_bulletin_off_season(mock_http, api):
@@ -133,7 +133,7 @@ async def test_list_massif(mock_http, api):
 
     massifs = await api.list_massif()
     assert {
-        department: [(massif["title"], massif["code"]) for massif in department_massifs]
+        department: [(massif.nom, massif.code) for massif in department_massifs]
         for department, department_massifs in massifs.items()
     } == {
         "Ariege": [("Orlu St-Barthelemy", 72)],
@@ -141,8 +141,10 @@ async def test_list_massif(mock_http, api):
         "Alpes-de-Haute-Provence": [("Ubaye", 21)],
         "Hautes-Alpes": [("Ubaye", 21)],
     }
-    assert massifs["Savoie"][0]["geometry"] == GEOMETRY
-    assert massifs["Ariege"][0]["geometry"] is None
+    assert massifs["Savoie"][0].geometry == GEOMETRY
+    assert massifs["Ariege"][0].geometry is None
+    # The same massif in its two departments
+    assert massifs["Hautes-Alpes"][0] is massifs["Alpes-de-Haute-Provence"][0]
 
     ((call,),) = mock_http.requests.values()
     assert call.kwargs["headers"]["apikey"] == TOKEN

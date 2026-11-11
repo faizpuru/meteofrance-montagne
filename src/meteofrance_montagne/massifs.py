@@ -3,14 +3,14 @@
 import logging
 from typing import Any
 
+from .models import Massif
+
 _LOGGER = logging.getLogger(__name__)
 
 
-def organize_by_department(
-    json_data: dict[str, Any],
-) -> dict[str, list[dict[str, Any]]]:
+def organize_by_department(json_data: dict[str, Any]) -> dict[str, list[Massif]]:
     """Organize the massifs of /liste-massifs by department."""
-    department_map: dict[str, list[dict[str, Any]]] = {}
+    department_map: dict[str, list[Massif]] = {}
 
     for feature in json_data["features"]:
         properties = feature["properties"]
@@ -19,30 +19,25 @@ def organize_by_department(
         if not department_map:  # Log only for the first one
             _LOGGER.debug("Properties keys: %s", list(properties.keys()))
 
-        massif_info = {
-            "title": properties.get("title", "Unknown"),
-            "code": properties.get("code", "Unknown"),
-            # MultiPolygon in longitude/latitude, to find its stations
-            "geometry": feature.get("geometry"),
-        }
+        if (code := properties.get("code")) is None:
+            continue
+        massif = Massif(
+            code=int(code),
+            nom=properties.get("title") or str(code),
+            geometry=feature.get("geometry"),
+        )
 
-        # Try different key name variants
-        dep = (
+        # Try different key name variants, a massif may be on two departments
+        for dep in (
             properties.get("Departemen")
             or properties.get("departement")
-            or properties.get("Departement")
-        )
-        if dep:
-            department_map.setdefault(dep, []).append(massif_info)
-
-        # Check for second department
-        dep2 = (
+            or properties.get("Departement"),
             properties.get("Dep2")
             or properties.get("dep2")
-            or properties.get("Departement2")
-        )
-        if dep2:
-            department_map.setdefault(dep2, []).append(massif_info)
+            or properties.get("Departement2"),
+        ):
+            if dep:
+                department_map.setdefault(dep, []).append(massif)
 
     return department_map
 

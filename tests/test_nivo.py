@@ -28,39 +28,39 @@ def test_parse_two_observations_a_day():
     """Complete the midday observation with the morning one."""
     observation = parse_nivo_observations(nivo_file())[STATION_ID]
 
-    assert observation["nom"] == "Val d'Isère (Joseray)"
-    assert observation["altitude"] == 1854
-    assert observation["latitude"] == 45.445
-    assert observation["longitude"] == 6.978167
+    assert observation.nom == "Val d'Isère (Joseray)"
+    assert observation.altitude == 1854
+    assert observation.latitude == 45.445
+    assert observation.longitude == 6.978167
     # Midday observation
-    assert observation["date"] == "2026-02-12T12:02:00Z"
-    assert observation["hauteur_neige"] == 151
-    assert observation["temperature"] == -1.7
-    assert observation["grain_sous_surface"] == 9
+    assert observation.date == "2026-02-12T12:02:00Z"
+    assert observation.hauteur_neige == 151
+    assert observation.temperature == -1.7
+    assert observation.grain_sous_surface == 9
     # Only measured in the morning
-    assert observation["temperature_min_24h"] == -6.6
-    assert observation["temperature_max_24h"] == 0.9
+    assert observation.temperature_min_24h == -6.6
+    assert observation.temperature_max_24h == 0.9
     # The morning board over 24h, not the midday one over 5h
-    assert observation["neige_fraiche_24h"] == 31
+    assert observation.neige_fraiche_24h == 31
     # Not observed over the last 24h
-    assert observation["chasse_neige"] is None
-    assert observation["temps_present"] == 73
-    assert observation["nebulosite"] == 8
-    assert observation["humidite"] == 95
-    assert observation["point_rosee"] == -2.4
+    assert observation.chasse_neige is None
+    assert observation.temps_present == 73
+    assert observation.nebulosite == 8
+    assert observation.humidite == 95
+    assert observation.point_rosee == -2.4
     # Over 24h, measured in the morning
-    assert observation["precipitations_24h"] == 24.0
+    assert observation.precipitations_24h == 24.0
 
 
 def test_parse_ignores_older_days():
     """Leave out the values not measured over the last 24h."""
     observation = parse_nivo_observations(nivo_file())["7393"]
 
-    assert observation["date"] == "2026-02-12T06:45:00Z"
-    assert observation["hauteur_neige"] == 120
+    assert observation.date == "2026-02-12T06:45:00Z"
+    assert observation.hauteur_neige == 120
     # Measured two days before only
-    assert observation["neige_fraiche_24h"] is None
-    assert observation["risque"] is None
+    assert observation.neige_fraiche_24h is None
+    assert observation.risque is None
 
 
 @pytest.mark.parametrize(
@@ -88,7 +88,7 @@ async def test_observations_unchanged(mock_http, api):
     mock_http.get(url, status=304)
 
     observations = await api.observations(2026)
-    assert observations[STATION_ID]["hauteur_neige"] == 151
+    assert observations[STATION_ID].hauteur_neige == 151
     assert await api.observations(2026) is observations
 
     _, call = next(iter(mock_http.requests.values()))
@@ -137,4 +137,4 @@ async def test_stations(mock_http, api):
     stations = await api.stations(2026)
     assert set(stations) == {"7393", STATION_ID}
     # The current year wins
-    assert stations[STATION_ID]["date"] == "2026-02-12T12:02:00Z"
+    assert stations[STATION_ID].date == "2026-02-12T12:02:00Z"

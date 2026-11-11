@@ -6,12 +6,12 @@ import gzip
 import io
 import logging
 from datetime import datetime, timedelta
-from typing import Any
 
 import aiohttp
 
 from .const import NIVO_TIMEOUT, NIVO_URL
 from .exceptions import MeteoFranceMontagneApiError
+from .models import Observation
 from .stations import station_name
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ def _nivo_time(row: dict[str, str]) -> datetime:
     return datetime.fromisoformat(row["validity_time"].replace("Z", "+00:00"))
 
 
-def parse_nivo_observations(content: bytes) -> dict[str, dict[str, Any]]:
+def parse_nivo_observations(content: bytes) -> dict[str, Observation]:
     """Parse a yearly nivo file into the last observation of each station."""
     text = gzip.decompress(content).decode("utf-8")
     rows_by_station: dict[str, list[dict[str, str]]] = {}
@@ -78,42 +78,42 @@ def parse_nivo_observations(content: bytes) -> dict[str, dict[str, Any]]:
             """Return the most recent value of a column, '' when not measured."""
             return next((row[column] for row in rows if row.get(column)), "")
 
-        observations[station_id] = {
-            "id": station_id,
-            "nom": station_name(station_id, last["name"]),
-            "altitude": _nivo_int(last["Altitude"]),
-            "latitude": _nivo_float(last["lat"]),
-            "longitude": _nivo_float(last["lon"]),
-            "date": last["validity_time"],
-            "hauteur_neige": _nivo_cm(value("ht_neige")),
-            "hauteur_neige_altitude": _nivo_cm(value("ht_neige_alti")),
+        observations[station_id] = Observation(
+            id=station_id,
+            nom=station_name(station_id, last["name"]),
+            altitude=_nivo_int(last["Altitude"]),
+            latitude=_nivo_float(last["lat"]),
+            longitude=_nivo_float(last["lon"]),
+            date=last["validity_time"],
+            hauteur_neige=_nivo_cm(value("ht_neige")),
+            hauteur_neige_altitude=_nivo_cm(value("ht_neige_alti")),
             # Measured on a board cleared at each observation: over 24h in the
             # morning (-99), over a few hours at midday (-50)
-            "neige_fraiche_24h": _nivo_cm(
+            neige_fraiche_24h=_nivo_cm(
                 value(
                     "ssfrai", [row for row in recent if row.get("perssfrai") == "-99"]
                 )
             ),
-            "neige_fraiche_altitude": _nivo_cm(value("neige_fraiche")),
-            "temps_present": _nivo_int(value("ww")),
-            "nebulosite": _nivo_int(value("n")),
-            "precipitations_24h": _nivo_float(value("rr24")),
-            "humidite": _nivo_int(value("u")),
-            "point_rosee": _nivo_celsius(value("td")),
-            "temperature": _nivo_celsius(value("t")),
-            "temperature_min_24h": _nivo_celsius(value("tn24")),
-            "temperature_max_24h": _nivo_celsius(value("tx24")),
-            "temperature_neige": _nivo_celsius(value("t_neige")),
-            "vent_direction": _nivo_int(value("dd")),
-            "vent_force": _nivo_float(value("ff")),
-            "vent_altitude_direction": _nivo_int(value("dd_alti")),
-            "vent_altitude_force": _nivo_float(value("ff_alti")),
-            "chasse_neige": _nivo_int(value("chasse_neige")),
-            "risque": _nivo_int(value("aval_risque")),
-            "grain_surface": _nivo_int(value("grain_predom")),
-            "grain_sous_surface": _nivo_int(value("grain_nombre")),
-            "masse_volumique": _nivo_float(value("m_vol_neige")),
-        }
+            neige_fraiche_altitude=_nivo_cm(value("neige_fraiche")),
+            temps_present=_nivo_int(value("ww")),
+            nebulosite=_nivo_int(value("n")),
+            precipitations_24h=_nivo_float(value("rr24")),
+            humidite=_nivo_int(value("u")),
+            point_rosee=_nivo_celsius(value("td")),
+            temperature=_nivo_celsius(value("t")),
+            temperature_min_24h=_nivo_celsius(value("tn24")),
+            temperature_max_24h=_nivo_celsius(value("tx24")),
+            temperature_neige=_nivo_celsius(value("t_neige")),
+            vent_direction=_nivo_int(value("dd")),
+            vent_force=_nivo_float(value("ff")),
+            vent_altitude_direction=_nivo_int(value("dd_alti")),
+            vent_altitude_force=_nivo_float(value("ff_alti")),
+            chasse_neige=_nivo_int(value("chasse_neige")),
+            risque=_nivo_int(value("aval_risque")),
+            grain_surface=_nivo_int(value("grain_predom")),
+            grain_sous_surface=_nivo_int(value("grain_nombre")),
+            masse_volumique=_nivo_float(value("m_vol_neige")),
+        )
 
     return observations
 
@@ -125,9 +125,9 @@ class MeteoFranceNivoApi:
         """Initialize the API."""
         self.session = session
         # ETag and parsed observations of each downloaded file
-        self._cache: dict[str, tuple[str, dict[str, dict[str, Any]]]] = {}
+        self._cache: dict[str, tuple[str, dict[str, Observation]]] = {}
 
-    async def observations(self, year: int) -> dict[str, dict[str, Any]]:
+    async def observations(self, year: int) -> dict[str, Observation]:
         """Return the last observation of each station during a year.
 
         Empty when the file of the year is not published yet.
@@ -180,7 +180,7 @@ class MeteoFranceNivoApi:
             self._cache[url] = (etag, observations)
         return observations
 
-    async def stations(self, year: int) -> dict[str, dict[str, Any]]:
+    async def stations(self, year: int) -> dict[str, Observation]:
         """Return the stations observing this year or the previous one."""
         previous, current = await asyncio.gather(
             self.observations(year - 1), self.observations(year)
