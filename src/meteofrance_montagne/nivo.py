@@ -19,6 +19,8 @@ _LOGGER = logging.getLogger(__name__)
 
 def _nivo_float(value: str | None) -> float | None:
     """Convert a value of the nivo file to float, None when missing."""
+    if not value:
+        return None
     try:
         return float(value)
     except (TypeError, ValueError):
@@ -27,6 +29,8 @@ def _nivo_float(value: str | None) -> float | None:
 
 def _nivo_int(value: str | None) -> int | None:
     """Convert a code of the nivo file to int, None when missing or unknown ("/")."""
+    if not value:
+        return None
     try:
         return int(value)
     except (TypeError, ValueError):
@@ -121,7 +125,7 @@ class MeteoFranceNivoApi:
         """Initialize the API."""
         self.session = session
         # ETag and parsed observations of each downloaded file
-        self._cache: dict[str, tuple[str, dict[str, dict]]] = {}
+        self._cache: dict[str, tuple[str, dict[str, dict[str, Any]]]] = {}
 
     async def observations(self, year: int) -> dict[str, dict[str, Any]]:
         """Return the last observation of each station during a year.
