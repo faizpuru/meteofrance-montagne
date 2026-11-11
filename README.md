@@ -32,11 +32,11 @@ async def main() -> None:
         # Massifs by department, with their geometry
         departments = await api.list_massif()
         haute_tarentaise = next(
-            massif for massif in departments["Savoie"] if massif["code"] == 6
+            massif for massif in departments["Savoie"] if massif.code == 6
         )
 
         bulletin = await api.bulletin(6)
-        print(bulletin["risque"]["risque_max"], bulletin["risque"]["resume"])
+        print(bulletin.risque.risque_max, bulletin.risque.resume)
 
         # PNG bytes, None when not published
         rose = await api.rose_pentes(6)
@@ -46,15 +46,15 @@ async def main() -> None:
         stations = await nivo.stations(2026)
         for station in stations.values():
             if in_massif(
-                station["longitude"], station["latitude"], haute_tarentaise["geometry"]
+                station.longitude, station.latitude, haute_tarentaise.geometry
             ):
-                print(station["nom"], station["hauteur_neige"], "cm")
+                print(station.nom, station.hauteur_neige, "cm")
 
 
 asyncio.run(main())
 ```
 
-The caller owns the `aiohttp.ClientSession`. The bulletins are only published from early November to late May.
+The data are frozen dataclasses (`Bulletin`, `Massif`, `Observation`…), with French names as in the bulletins. The caller owns the `aiohttp.ClientSession`. The bulletins are only published from early November to late May.
 
 | Exception | Meaning |
 |---|---|

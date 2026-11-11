@@ -3,7 +3,6 @@
 import json
 import logging
 import xml.etree.ElementTree as ET
-from typing import Any
 
 import aiohttp
 
@@ -15,6 +14,7 @@ from .exceptions import (
     MeteoFranceMontagneOffSeason,
 )
 from .massifs import organize_by_department
+from .models import Bulletin, Massif
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,12 +27,12 @@ class MeteoFranceMontagneApi:
         self.session = session
         self.token = token
 
-    async def list_massif(self) -> dict[str, list[dict[str, Any]]]:
+    async def list_massif(self) -> dict[str, list[Massif]]:
         """Get list of massifs organized by department."""
         response = await self.call_api(f"{BASE_URL}/liste-massifs")
         return organize_by_department(json.loads(response))
 
-    async def bulletin(self, massif: int | str) -> dict[str, Any]:
+    async def bulletin(self, massif: int | str) -> Bulletin:
         """Get avalanche bulletin for a massif."""
         response = await self.call_api(
             f"{BASE_URL}/massif/BRA?id-massif={massif}&format=xml"
