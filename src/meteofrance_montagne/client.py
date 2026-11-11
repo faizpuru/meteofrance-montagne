@@ -27,7 +27,7 @@ class MeteoFranceMontagneApi:
         self.session = session
         self.token = token
 
-    async def list_massif(self) -> dict[str, list[dict]]:
+    async def list_massif(self) -> dict[str, list[dict[str, Any]]]:
         """Get list of massifs organized by department."""
         response = await self.call_api(f"{BASE_URL}/liste-massifs")
         return organize_by_department(json.loads(response))

@@ -6,9 +6,11 @@ from typing import Any
 _LOGGER = logging.getLogger(__name__)
 
 
-def organize_by_department(json_data: dict[str, Any]) -> dict[str, list[dict]]:
+def organize_by_department(
+    json_data: dict[str, Any],
+) -> dict[str, list[dict[str, Any]]]:
     """Organize the massifs of /liste-massifs by department."""
-    department_map: dict[str, list[dict]] = {}
+    department_map: dict[str, list[dict[str, Any]]] = {}
 
     for feature in json_data["features"]:
         properties = feature["properties"]
@@ -45,7 +47,7 @@ def organize_by_department(json_data: dict[str, Any]) -> dict[str, list[dict]]:
     return department_map
 
 
-def _in_ring(longitude: float, latitude: float, ring: list) -> bool:
+def _in_ring(longitude: float, latitude: float, ring: list[list[float]]) -> bool:
     """Return whether a point is inside a ring, by ray casting."""
     inside = False
     for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1], strict=True):
@@ -57,7 +59,7 @@ def _in_ring(longitude: float, latitude: float, ring: list) -> bool:
 
 
 def in_massif(
-    longitude: float | None, latitude: float | None, geometry: dict | None
+    longitude: float | None, latitude: float | None, geometry: dict[str, Any] | None
 ) -> bool:
     """Return whether a point is inside the (Multi)Polygon of a massif."""
     if not geometry or longitude is None or latitude is None:

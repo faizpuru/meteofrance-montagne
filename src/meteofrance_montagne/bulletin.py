@@ -85,7 +85,7 @@ def parse_bulletin_xml(root: ET.Element) -> dict[str, Any]:
             return None
         return _to_bool_or_null(_get_attr(pente_elem, attr))
 
-    risque = {
+    risque: dict[str, Any] = {
         "risque_max": risque_attr("RISQUEMAXI"),
         "risque_1": {
             "valeur": risque_attr("RISQUE1"),
@@ -153,7 +153,7 @@ def parse_bulletin_xml(root: ET.Element) -> dict[str, Any]:
 
     # Parse ENNEIGEMENT
     enneigement_elem = root.find("ENNEIGEMENT")
-    enneigement = {
+    enneigement: dict[str, Any] = {
         "date": _get_attr(enneigement_elem, "DATE")
         if enneigement_elem is not None
         else "",
@@ -171,7 +171,7 @@ def parse_bulletin_xml(root: ET.Element) -> dict[str, Any]:
 
     # Parse NEIGEFRAICHE
     neige_fraiche_elem = root.find("NEIGEFRAICHE")
-    neige_fraiche = {
+    neige_fraiche: dict[str, Any] = {
         "altitude_ss": _to_int_or_null(_get_attr(neige_fraiche_elem, "ALTITUDESS"))
         if neige_fraiche_elem is not None
         else None,
